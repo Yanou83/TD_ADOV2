@@ -33,7 +33,7 @@ namespace TD_ADONet
                 //cs1.AfficherSalaireMoyenParProjet();
                 //Console.WriteLine(cs1.AugmenterSalaireCurseur());
                 //cs1.AfficherEmployesSalaire(125000);
-                //cs1.AfficheSalaireEmploye(1);
+                cs1.AfficheSalaireEmploye(1);
                 ////cs1.InsereCours();
                 ////cs1.SupprimeCours("BR099");
                 //cs1.AugmenterSalaire(5, "PR2");
