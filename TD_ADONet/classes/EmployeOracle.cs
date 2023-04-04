@@ -61,25 +61,27 @@ namespace EmployeDatas.Oracle
             return chaine;
         }
 
-        public string AfficherNbProjets()
+        public void AfficherNbProjets()
         {
-            string requete = "SELECT * FROM projet";
-            string chaine = "";
+            string requete = "SELECT COUNT(projet.codeprojet) AS nb_projets FROM projet";
             OracleCommand oracleCommand = connexion.CreateCommand();
             oracleCommand.CommandText = requete;
-            OracleDataReader reader = oracleCommand.ExecuteReader();
-            while (reader.Read())
+            object result = oracleCommand.ExecuteScalar();
+            if (result != null)
             {
-                chaine += "CODEPROJET : " + reader.GetString(0) + " | " + "NOMPROJET : " + reader.GetString(1) + " | " + "DEBUTPROJ : " + reader.GetString(2) + " | " + "FINPREVUE : " + reader.GetString(3) + " | " + "NOMCONTACT : " + reader.GetString(4) + "\n";
+                int count = Convert.ToInt32(result);
+                Console.WriteLine("Nombre de projets : " + count);
             }
-            reader.Close();
-            return chaine;
+            else
+            {
+                Console.WriteLine("Aucun projet trouvé");
+            }
         }
+
 
         public void AfficherSalaireMoyenParProjet()
         {
             string requete = "SELECT COALESCE(projet.codeprojet, 'Aucun') AS codeprojet, projet.nomprojet, COUNT(DISTINCT employe.numemp), ROUND(AVG(employe.salaire),2) AS moysalaire FROM employe LEFT JOIN projet ON projet.codeprojet = employe.codeprojet GROUP BY COALESCE(projet.codeprojet, 'Aucun'), projet.nomprojet";
-            string chaine = "";
             OracleCommand oracleCommand = connexion.CreateCommand();
             oracleCommand.CommandText = requete;
             OracleDataReader reader = oracleCommand.ExecuteReader();
@@ -94,25 +96,37 @@ namespace EmployeDatas.Oracle
             reader.Close();
         }
 
-        public string AugmenterSalaireCurseur()
+
+        public void AugmenterSalaireCurseur()
         {
-            string requete = "UPDATE employe SET employe.salaire = employe.salaire * 1.03 WHERE employe.codeprojet = 'PR1'";
-            string chaine = "";
-            OracleCommand oracleCommand = connexion.CreateCommand();
-            oracleCommand.CommandText = requete;
-            int nombreLignesAffectees = oracleCommand.ExecuteNonQuery();
+            string r1 = "SELECT * FROM employe WHERE employe.codeprojet = 'PR1'";
+            OracleCommand oracleCommand1 = connexion.CreateCommand();
+            oracleCommand1.CommandText = r1;
+            OracleDataReader reader = oracleCommand1.ExecuteReader();
+            int nombreLignesAffectees = oracleCommand1.ExecuteNonQuery();
+            while (reader.Read())
+            {
+                string requeteupdate = "UPDATE employe SET employe.salaire = employe.salaire * 1.03";
+                oracleCommand1.CommandText = requeteupdate;
+
+            }
             if (nombreLignesAffectees > 0)
             {
-                chaine = "Les salaires des employés du projet PR1 ont bien été augmenté de 3%";
+                Console.WriteLine("Les salaires des employés du projet PR1 ont bien été augmenté de 3%");
             }
-            return chaine;
+            else
+            {
+                Console.WriteLine("Rien n'a été modifié");
+            }
+
+            reader.Close();
         }
 
         public void AfficherEmployesSalaire(int salaireMAX)
         {
-            string requete = "SELECT employe.numemp, employe.nomemp, employe.prenomemp, employe.salaire FROM employe WHERE employe.salaire < " + salaireMAX;
-            OracleCommand oracleCommand = connexion.CreateCommand();
-            oracleCommand.CommandText = requete;
+            string requete = "SELECT employe.numemp, employe.nomemp, employe.prenomemp, employe.salaire FROM employe WHERE employe.salaire < :salaireMAX";
+            OracleCommand oracleCommand = new OracleCommand(requete, connexion);
+            oracleCommand.Parameters.Add(new OracleParameter(":salaireMAX", salaireMAX));
             OracleDataReader reader = oracleCommand.ExecuteReader();
             while (reader.Read())
             {
